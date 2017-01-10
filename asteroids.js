@@ -20,7 +20,7 @@ function respawn() {
     gameOver = true;
     return false;
   }
-  
+
   ship = new Ship(createVector(width / 2, height / 2));
 }
 
@@ -33,7 +33,7 @@ function nextLevel() {
 
 function draw() {
   background(0);
-  
+
   for (var i = 0; i < asteroids.length; i++) {
     asteroids[i].update();
     asteroids[i].draw();
@@ -47,7 +47,7 @@ function draw() {
       shoots.splice(i, 1);
       continue;
     }
-    
+
     for (var j = asteroids.length - 1; j >= 0; j--) {
       if (shoots[i].location.dist(asteroids[j].location) < asteroids[j].radius) {
         score += shoots[i].lifeSpan * level;
@@ -60,21 +60,21 @@ function draw() {
             asteroids.push(newAsteroid);
           }
         }
-        
+
         shoots.splice(i, 1);
         asteroids.splice(j, 1);
         break shootsFor;
       }
     }
   }
-  
+
   if (ship) {
     if (keyIsDown(LEFT_ARROW)) {
       ship.turnLeft();
     } else if (keyIsDown(RIGHT_ARROW)) {
       ship.turnRight();
     }
-    
+
     if (keyIsDown(UP_ARROW)) {
       ship.power();
     }
@@ -90,11 +90,11 @@ function draw() {
       }
     }
   }
-  
+
   if (asteroids.length == 0) {
     nextLevel();
   }
-  
+
   showScore();
   showLives();
   if (gameOver == true) {
@@ -149,3 +149,4 @@ function keyTyped() {
     shoots.push(new Shoot(createVector(ship.location.x, ship.location.y), ship.heading));
   }
 }
+

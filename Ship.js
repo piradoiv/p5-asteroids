@@ -9,7 +9,7 @@ function Ship(l) {
 
   this.width = 5;
   this.height = 8;
-  
+
   this.update = function() {
     this.velocity.add(this.acceleration);
     this.velocity.limit(this.topSpeed);
@@ -19,40 +19,40 @@ function Ship(l) {
     if (this.boosting > 0) {
       this.boosting *= .9;
     }
-    
+
     if (this.shield > 0) {
       this.shield *= 0.02;
     }
   }
-  
+
   this.turnLeft = function() {
     this.heading -= 0.1;
   }
-  
+
   this.turnRight = function() {
     this.heading += 0.1;
   }
-  
+
   this.power = function() {
     this.acceleration = p5.Vector.fromAngle(this.heading);
     this.acceleration.mult(0.1, 0);
     this.boosting = 10;
   }
-  
+
   this.edges = function() {
     if (this.location.x > width) {
       this.location.x = 0;
     } else if (this.location.x < 0) {
       this.location.x = width;
     }
-    
+
     if (this.location.y > height) {
       this.location.y = 0;
     } else if (this.location.y < 0) {
       this.location.y = height;
     }
   }
-  
+
   this.draw = function() {
     push();
     translate(this.location.x, this.location.y);
@@ -70,7 +70,8 @@ function Ship(l) {
         line(random(2, -2), -random(this.boosting), 0, 0);
       }
     }
-    
+
     pop();
   }
 }
+

@@ -3,12 +3,12 @@ function Shoot(location, angle) {
   this.velocity = p5.Vector.fromAngle(angle);
   this.velocity.mult(6);
   this.lifeSpan = 0;
-  
+
   this.update = function() {
     this.location.add(this.velocity);
     this.lifeSpan++;
   }
-  
+
   this.offScreen = function() {
     if (this.location.x > width + 20 ||
       this.location.x < -20 ||
@@ -16,7 +16,7 @@ function Shoot(location, angle) {
       this.location.y < -20) {
         return true;
     }
-    
+
     return false;
   }
 
@@ -30,3 +30,4 @@ function Shoot(location, angle) {
     pop();
   }
 }
+
