@@ -140,6 +140,9 @@ function keyPressed() {
   if (gameOver && keyCode == ENTER) {
     gameOver = false;
     lives = 4;
+    score = 0;
+    asteroids = [];
+    nextLevel();
     respawn();
   }
 }
