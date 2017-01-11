@@ -10,14 +10,7 @@ function Shoot(location, angle) {
   }
 
   this.offScreen = function() {
-    if (this.location.x > width + 20 ||
-      this.location.x < -20 ||
-      this.location.y > height + 20 ||
-      this.location.y < -20) {
-        return true;
-    }
-
-    return false;
+    return this.lifeSpan > 200;
   }
 
   this.draw = function() {

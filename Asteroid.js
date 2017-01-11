@@ -27,7 +27,6 @@ function Asteroid(l, r, v) {
 
   this.update = function() {
     this.location.add(this.velocity);
-    this.edges();
   }
 
   this.edges = function() {
@@ -56,6 +55,19 @@ function Asteroid(l, r, v) {
     }
     endShape(CLOSE);
     pop();
+
+    var v = p5.Vector.sub(this.location, ship.location);
+    if (v.mag() > width / 2) {
+      push();
+      stroke(255);
+      v.setMag(100);
+      translate(ship.location.x, ship.location.y);
+      translate(v.x, v.y);
+      rotate(v.heading());
+      stroke(255, 80);
+      line(100, 0, 110, 0);
+      pop();
+    }
   }
 }
 

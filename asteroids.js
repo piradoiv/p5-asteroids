@@ -1,4 +1,5 @@
 var ship;
+var camera2d;
 var asteroids = [];
 var shoots = [];
 var level = 0;
@@ -10,6 +11,7 @@ function setup() {
   createCanvas(windowWidth, windowHeight);
   frameRate(48);
   respawn();
+  camera2d = new Camera(ship.location);
   ship.shield = 0;
   nextLevel();
 }
@@ -22,6 +24,7 @@ function respawn() {
   }
 
   ship = new Ship(createVector(width / 2, height / 2));
+  camera2d = new Camera(ship.location);
 }
 
 function nextLevel() {
@@ -33,6 +36,12 @@ function nextLevel() {
 
 function draw() {
   background(0);
+  showScore();
+  showLives();
+
+  camera2d.update();
+  translate(-camera2d.location.x, -camera2d.location.y);
+  camera2d.draw();
 
   for (var i = 0; i < asteroids.length; i++) {
     asteroids[i].update();
@@ -95,8 +104,6 @@ function draw() {
     nextLevel();
   }
 
-  showScore();
-  showLives();
   if (gameOver == true) {
     showGameOver();
   }
@@ -141,6 +148,7 @@ function keyPressed() {
     gameOver = false;
     lives = 4;
     score = 0;
+    level = 0;
     asteroids = [];
     nextLevel();
     respawn();

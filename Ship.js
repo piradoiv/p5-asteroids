@@ -14,7 +14,6 @@ function Ship(l) {
     this.velocity.add(this.acceleration);
     this.velocity.limit(this.topSpeed);
     this.location.add(this.velocity);
-    this.edges();
     this.acceleration.mult(0);
     if (this.boosting > 0) {
       this.boosting *= .9;
