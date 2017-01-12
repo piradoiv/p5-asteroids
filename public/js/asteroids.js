@@ -8,6 +8,7 @@ var lives = 5;
 var gameOver = false;
 var players = [];
 var you;
+var socket = io();
 
 function setup() {
   createCanvas(windowWidth, windowHeight);
@@ -81,27 +82,13 @@ function draw() {
 
   if (ship) {
     if (keyIsDown(LEFT_ARROW)) {
-      ship.turnLeft();
-      var p = {
-          location: {x: ship.location.x, y: ship.location.y},
-          velocity: {x: ship.velocity.x, y: ship.velocity.y},
-          acceleration: {x: ship.acceleration.x, y: ship.acceleration.y},
-          heading: ship.heading
-      };
-      socket.emit('accelerate', p);
+      socket.emit('rotate left');
     } else if (keyIsDown(RIGHT_ARROW)) {
-      ship.turnRight();
+      socket.emit('rotate right');
     }
 
     if (keyIsDown(UP_ARROW)) {
-      ship.power();
-      var p = {
-          location: {x: ship.location.x, y: ship.location.y},
-          velocity: {x: ship.velocity.x, y: ship.velocity.y},
-          acceleration: {x: ship.acceleration.x, y: ship.acceleration.y},
-          heading: ship.heading
-      };
-      socket.emit('accelerate', p);
+      socket.emit('accelerate');
     }
 
     ship.update();
@@ -116,16 +103,13 @@ function draw() {
     }
   }
 
-  for (i = 0; i < players.length; i++) {
+  for (var i in players) {
     var current = players[i];
     if (current.id == you) {
         continue;
     }
 
-    var s = players[i].ship;
-    if (s) {
-        s.draw();
-    }
+    current.draw();
   }
 
   if (asteroids.length == 0) {
@@ -189,24 +173,9 @@ function keyTyped() {
   }
 }
 
-var socket = io();
-socket.on('setup', function(msg) {
-  you = msg.id;
-
-  for (var i = 0; i < msg.players.length; i++) {
-      var s = new Ship();
-      var player = msg.players[i];
-      s.location = createVector(player.location.x, player.location.y);
-      s.velocity = p5.Vector.fromAngle(player.velocity.angle);
-      s.velocity.mult(player.velocity.magnitude);
-      s.acceleration = p5.Vector.fromAngle(player.acceleration.angle);
-      s.acceleration.mult(player.acceleration.magnitude);
-
-      players.push({
-          id: player.id,
-          ship: s
-      });
-  }
+socket.on('setup', function(data) {
+    console.log(data);
+    you = data.id;
 });
 
 socket.on('new player', function(player) {
@@ -245,5 +214,28 @@ socket.on('player disconnected', function(id) {
       players.splice(i, 1);
     }
   }
+});
+
+socket.on('update', function(data) {
+    players = [];
+    for (var i in data) {
+        var current = data[i];
+        if (current.id == you) {
+            ship.location.x = current.location.x;
+            ship.location.y = current.location.y;
+            ship.heading = current.heading;
+        } else {
+            var player = players[current.id];
+            if (!player) {
+                players[current.id] = new Ship(createVector(current.location.x, current.location.y));
+                player = players[current.id];
+            }
+
+            player.location.x = current.location.x;
+            player.location.y = current.location.y;
+            player.heading = current.heading;
+            players[i] = player;
+        }
+    }
 });
 

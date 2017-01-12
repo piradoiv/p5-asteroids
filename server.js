@@ -2,49 +2,35 @@ var express = require('express');
 var app = require('express')();
 var http = require('http').Server(app);
 var io = require('socket.io')(http);
-var port = 3000;
+var Victor = require('victor');
 
-var last_id = 0;
+var port = 3000;
 var players = [];
 
 app.use(express.static('public'));
 
 io.on('connection', function(socket) {
-    var player = {
-        id: ++last_id,
-        location: {
-            x: (Math.random() * 100) - 50,
-            y: (Math.random() * 100) - 50
-        },
-        heading: 0,
-        velocity: {
-            angle: 0,
-            magnitude: 0
-        },
-        acceleration: {
-            angle: 0,
-            magnitude: 0
-        }
-    };
+    var player = new Player(socket);
 
     console.log('Player #' + player.id + ' connected');
     players.push(player);
 
-    socket.broadcast.emit('new player', player);
-
     socket.emit('setup', {
-        id: player.id,
-        players: players
+        id: player.id
     });
 
     socket.on('accelerate', function(msg) {
-        console.log(msg);
-        for (var i = 0; i < players.length; i++) {
-            if (players[i].id == player.id) {
-                players[i].ship = msg;
-            }
-        }
-        socket.broadcast.emit('moving', player);
+        var v = new Victor(0.1, 0);
+        v.rotate(player.heading);
+        player.acceleration.add(v);
+    });
+
+    socket.on('rotate left', function(msg) {
+        player.heading -= 0.1;
+    });
+
+    socket.on('rotate right', function(msg) {
+        player.heading += 0.1;
     });
 
     socket.on('disconnect', function() {
@@ -55,12 +41,43 @@ io.on('connection', function(socket) {
                 break;
             }
         }
-
-        io.emit('player disconnected', player.id);
     });
 });
 
 http.listen(port, function() {
     console.log('Server started at http://localhost:' + port);
+    update();
 });
+
+function update() {
+    var data = [];
+    for (var i in players) {
+        var p = players[i];
+        p.update();
+        data.push({
+            id: p.id,
+            location: p.location.toObject(),
+            heading: p.heading
+        });
+    }
+
+    io.emit('update', data);
+    setTimeout(update, 1000/60);
+}
+
+function Player(socket) {
+    this.id = socket.id;
+    this.socket = socket;
+    this.location = new Victor(0, 0);
+    this.velocity = new Victor(0, 0);
+    this.acceleration = new Victor(0, 0);
+    this.heading = 0;
+
+    this.update = function() {
+        this.velocity.add(this.acceleration);
+        this.velocity.limit(8, 0.75);
+        this.location.add(this.velocity);
+        this.acceleration.limit(0, 0);
+    }
+}
 
