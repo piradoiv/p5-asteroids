@@ -6,6 +6,8 @@ var level = 0;
 var score = 0;
 var lives = 5;
 var gameOver = false;
+var players = [];
+var you;
 
 function setup() {
   createCanvas(windowWidth, windowHeight);
@@ -80,12 +82,26 @@ function draw() {
   if (ship) {
     if (keyIsDown(LEFT_ARROW)) {
       ship.turnLeft();
+      var p = {
+          location: {x: ship.location.x, y: ship.location.y},
+          velocity: {x: ship.velocity.x, y: ship.velocity.y},
+          acceleration: {x: ship.acceleration.x, y: ship.acceleration.y},
+          heading: ship.heading
+      };
+      socket.emit('accelerate', p);
     } else if (keyIsDown(RIGHT_ARROW)) {
       ship.turnRight();
     }
 
     if (keyIsDown(UP_ARROW)) {
       ship.power();
+      var p = {
+          location: {x: ship.location.x, y: ship.location.y},
+          velocity: {x: ship.velocity.x, y: ship.velocity.y},
+          acceleration: {x: ship.acceleration.x, y: ship.acceleration.y},
+          heading: ship.heading
+      };
+      socket.emit('accelerate', p);
     }
 
     ship.update();
@@ -97,6 +113,18 @@ function draw() {
           respawn();
         }
       }
+    }
+  }
+
+  for (i = 0; i < players.length; i++) {
+    var current = players[i];
+    if (current.id == you) {
+        continue;
+    }
+
+    var s = players[i].ship;
+    if (s) {
+        s.draw();
     }
   }
 
@@ -160,4 +188,62 @@ function keyTyped() {
     shoots.push(new Shoot(createVector(ship.location.x, ship.location.y), ship.heading));
   }
 }
+
+var socket = io();
+socket.on('setup', function(msg) {
+  you = msg.id;
+
+  for (var i = 0; i < msg.players.length; i++) {
+      var s = new Ship();
+      var player = msg.players[i];
+      s.location = createVector(player.location.x, player.location.y);
+      s.velocity = p5.Vector.fromAngle(player.velocity.angle);
+      s.velocity.mult(player.velocity.magnitude);
+      s.acceleration = p5.Vector.fromAngle(player.acceleration.angle);
+      s.acceleration.mult(player.acceleration.magnitude);
+
+      players.push({
+          id: player.id,
+          ship: s
+      });
+  }
+});
+
+socket.on('new player', function(player) {
+  var s = new Ship();
+  s.location = createVector(player.location.x, player.location.y);
+  s.velocity = p5.Vector.fromAngle(player.velocity.angle);
+  s.velocity.mult(player.velocity.magnitude);
+  s.acceleration = p5.Vector.fromAngle(player.acceleration.angle);
+  s.acceleration.mult(player.acceleration.magnitude);
+
+  players.push({
+      id: player.id,
+      ship: s
+  });
+});
+
+socket.on('moving', function(player) {
+  for (var i = 0; i < players.length; i++) {
+      if (players[i].id == player.id) {
+          var s = new Ship();
+          s.location = createVector(player.location.x, player.location.y);
+          s.velocity = p5.Vector.fromAngle(player.velocity.angle);
+          s.velocity.mult(player.velocity.magnitude);
+          s.acceleration = p5.Vector.fromAngle(player.acceleration.angle);
+          s.acceleration.mult(player.acceleration.magnitude);
+          s.heading = player.heading;
+
+          players[i].ship = s;
+      }
+  }
+});
+
+socket.on('player disconnected', function(id) {
+  for (var i = players.length - 1; i >= 0; i--) {
+    if (players[i].id == id) {
+      players.splice(i, 1);
+    }
+  }
+});
 
